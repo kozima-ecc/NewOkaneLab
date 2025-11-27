@@ -1,2 +1,2 @@
 sample;
-sample.exe;
+sample;
