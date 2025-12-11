@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
               InputSection(
                 initialInvestment: _initialInvestment,
                 onInitialInvestmentChanged: (value) => setState(() => _initialInvestment = value),
-                simulationYears: _simulationYears ?? 20,
+                simulationYears: _simulationYears,
                 onSimulationYearsChanged: (value) => setState(() => _simulationYears = value),
                 isMonthlyMode: _isMonthlyMode,
                 onMonthlyModeChanged: (value) => setState(() => _isMonthlyMode = value),
@@ -161,7 +161,7 @@ class _HomePageState extends State<HomePage> {
                 resultsKey: _resultsKey,
                 initialInvestment: _initialInvestment,
                 averageMonthlyInvestment: _averageMonthlyInvestment,
-                simulationYears: _simulationYears ?? 20,
+                simulationYears: _simulationYears,
               ),
             ],
           ),
