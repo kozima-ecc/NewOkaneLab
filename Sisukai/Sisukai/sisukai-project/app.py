@@ -289,7 +289,7 @@ def get_history():
 # ===============================================
 if __name__ == '__main__':
     print("🚀 Flask API 起動中...")
-    print("➡ http://10.200.1.27:8080/apidocs で仕様書を確認できます")
+    print("➡ http://127.0.0.1:8080/apidocs で仕様書を確認できます")
     # 外部公開設定 (0.0.0.0)
     
     app.run(host="0.0.0.0", port=8080, debug=True)
