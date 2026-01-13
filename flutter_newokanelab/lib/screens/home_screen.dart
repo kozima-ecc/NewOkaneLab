@@ -22,7 +22,7 @@ class _HomePageState extends State<HomePage> {
   bool _isMonthlyMode = false;
   double _fixedMonthlyInvestment = 20000;
   late List<double> _monthlyInvestments;
-  String _selectedFundId = "balanced";
+  String _selectedFundId = "7203.T";
   final Set<String> _selectedEventIds = {};
   
   bool _isLoading = false;
@@ -30,16 +30,21 @@ class _HomePageState extends State<HomePage> {
 
   // --- Static Data ---
   final List<Fund> _funds = const [
-    Fund(id: "aggressive", label: "アグレッシブファンド", annualReturn: 0.08),
-    Fund(id: "balanced", label: "バランスファンド", annualReturn: 0.06),
-    Fund(id: "conservative", label: "コンサバティブファンド", annualReturn: 0.04),
-    Fund(id: "growth", label: "グロースファンド", annualReturn: 0.09),
-    Fund(id: "income", label: "インカムファンド", annualReturn: 0.05),
+    Fund(id: "7203.T", label: "トヨタ自動車 (7203.T)", annualReturn: 0.04),
+    Fund(id: "^N225", label: "日経平均株価 (^N225)", annualReturn: 0.05),
+    Fund(id: "6758.T", label: "ソニーグループ (6758.T)", annualReturn: 0.05),
+    Fund(id: "8306.T", label: "三菱UFJフィナンシャルG (8306.T)", annualReturn: 0.03),
+    Fund(id: "7974.T", label: "任天堂 (7974.T)", annualReturn: 0.06),
+    Fund(id: "8035.T", label: "東京エレクトロン (8035.T)", annualReturn: 0.07),
+    Fund(id: "9984.T", label: "ソフトバンクグループ (9984.T)", annualReturn: 0.08),
+    Fund(id: "6861.T", label: "キーエンス (6861.T)", annualReturn: 0.06),
+    Fund(id: "4063.T", label: "信越化学工業 (4063.T)", annualReturn: 0.05),
+    Fund(id: "9432.T", label: "日本電信電話 (9432.T)", annualReturn: 0.03),
   ];
   final List<LifeEvent> _events = const [
-    LifeEvent(id: "retirement", label: "バブル崩壊"),
-    LifeEvent(id: "education", label: "コロナショック"),
-    LifeEvent(id: "housing", label: "トランプショック"),
+    LifeEvent(id: "china_shock_2015", label: "チャイナショック懸念 (2015)"),
+    LifeEvent(id: "corona_shock_2020", label: "コロナショック (2020)"),
+    LifeEvent(id: "yen_depreciation_2022", label: "円安・物価高 (2022)"),
   ];
   final List<String> _months = const [
     "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"
