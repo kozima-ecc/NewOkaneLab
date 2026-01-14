@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'core/constants.dart';
 import 'screens/home_screen.dart'; // Import the new home screen
@@ -22,21 +24,21 @@ class InvestmentSimulatorApp extends StatelessWidget {
       // アプリケーション全体のテーマ設定
       theme: ThemeData(
         brightness: Brightness.light,
-        primaryColor: Colors.green,
-        scaffoldBackgroundColor: Colors.green,
-        cardColor: Colors.green,
+        primaryColor: kGreenColor,
+        scaffoldBackgroundColor: kMainColor,
+        cardColor: kCardColor,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
+          seedColor: kGreenColor,
           brightness: Brightness.light,
-          primary: Colors.green,
-          background: Colors.green,
-          surface: Colors.green,
+          primary: kGreenColor,
+          background: kMainColor,
+          surface: kCardColor,
           onSurface: Colors.black,
         ),
         textTheme: const TextTheme(
           bodyMedium: TextStyle(color: Colors.black),
           headlineSmall: TextStyle(fontWeight: FontWeight.bold),
-          titleLarge: TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+          titleLarge: TextStyle(fontWeight: FontWeight.bold, color: kGreenColor),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
@@ -45,20 +47,20 @@ class InvestmentSimulatorApp extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
-            borderSide: const BorderSide(color: Colors.green, width: 2),
+            borderSide: const BorderSide(color: kGreenColor, width: 2),
           ),
-          fillColor: Colors.green,
+          fillColor: kCardColor,
           filled: true,
         ),
         sliderTheme: SliderThemeData(
-          activeTrackColor: Colors.green,
+          activeTrackColor: kGreenColor,
           inactiveTrackColor: Colors.grey[300],
-          thumbColor: Colors.green,
-          overlayColor: Colors.green.withAlpha(100),
+          thumbColor: kGreenColor,
+          overlayColor: kGreenColor.withAlpha(100),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
+            backgroundColor: kGreenColor,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
