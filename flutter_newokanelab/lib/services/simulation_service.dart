@@ -13,33 +13,35 @@ class SimulationService {
     required int simulationYears,
   }) async {
     
-    // 1. ファンドIDに基づいて投資銘柄(Tickers)を決定する
-    List<String> tickers;
-    switch (selectedFundId) {
-      case 'nikkei225':
-        // 日経平均株価連動
-        tickers = ["^N225"];
-        break;
-      case 'japan_core':
-        // 国内主力大型株 (トヨタ, ソニーG, 三菱UFJ)
-        tickers = ["7203.T", "6758.T", "8306.T"];
-        break;
-      case 'us_tech':
-        // 米国テック大手 (Apple, Microsoft, Google)
-        tickers = ["AAPL", "MSFT", "GOOGL"];
-        break;
-      case 'semi_growth':
-        // 半導体・グロース (東京エレクトロン, キーエンス, NVIDIA)
-        tickers = ["8035.T", "6861.T", "NVDA"];
-        break;
-      case 'high_dividend':
-        // 高配当・バリュー (三菱商事, 武田薬品, NTT)
-        tickers = ["8058.T", "4502.T", "9432.T"];
-        break;
-      default:
-        // デフォルト
-        tickers = ["^N225"];
-    }
+    // 1. ファンドIDに基づいて投資銘柄(Tickers)を決定する//現状はグループに対応していないからコメントアウト
+    // List<String> tickers;
+    // switch (selectedFundId) {
+    //   case 'nikkei225':
+    //     // 日経平均株価連動
+    //     tickers = ["^N225"];
+    //     break;
+    //   case 'japan_core':
+    //     // 国内主力大型株 (トヨタ, ソニーG, 三菱UFJ)
+    //     tickers = ["7203.T", "6758.T", "8306.T"];
+    //     break;
+    //   case 'us_tech':
+    //     // 米国テック大手 (Apple, Microsoft, Google)
+    //     tickers = ["AAPL", "MSFT", "GOOGL"];
+    //     break;
+    //   case 'semi_growth':
+    //     // 半導体・グロース (東京エレクトロン, キーエンス, NVIDIA)
+    //     tickers = ["8035.T", "6861.T", "NVDA"];
+    //     break;
+    //   case 'high_dividend':
+    //     // 高配当・バリュー (三菱商事, 武田薬品, NTT)
+    //     tickers = ["8058.T", "4502.T", "9432.T"];
+    //     break;
+    //   default:
+    //     // デフォルト
+    //     tickers = ["^N225"];
+    // }
+
+    final tickers = [selectedFundId];
 
     // 2. シミュレーション期間の設定
     // バックエンドのデータが 2015-01-01 からあるため、そこを開始点とします。

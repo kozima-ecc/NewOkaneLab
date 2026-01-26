@@ -59,6 +59,26 @@ class ResultsSection extends StatelessWidget {
       // 結果がある場合、グラフとサマリーを表示
       final projectionData = simulationResult!.projectionData;
       final summaryData = simulationResult!.summaryData;
+      final yearsForView = (simulationYears ?? 10).round().toDouble();
+      final shown = projectionData.where((s) => s.x <= yearsForView).toList()
+          ..sort((a, b) => a.x.compareTo(b.x));
+
+      final fixedSummaryData = Map<String, double>.from(summaryData);
+
+      if (shown.isNotEmpty) {
+        final shownLastY = shown.last.y;
+
+        // 表示年数の投資元本を再計算（初期投資 + 平均月額 * 12 * 年）
+        final totalInvestedView =
+        initialInvestment + averageMonthlyInvestment * 12 * yearsForView;
+
+        fixedSummaryData["totalAmount"] = shownLastY;
+        fixedSummaryData["totalInvested"] = totalInvestedView;
+
+        fixedSummaryData["profit"] = shownLastY - totalInvestedView;
+        fixedSummaryData["profitRate"] =
+        totalInvestedView == 0 ? 0 : (fixedSummaryData["profit"]! / totalInvestedView) * 100;
+      }
       // LayoutBuilderを使って、画面幅に応じたレイアウト切り替えを行う
       content = LayoutBuilder(
         builder: (context, constraints) {
@@ -72,9 +92,9 @@ class ResultsSection extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildInvestmentSummaryCard(context, summaryData, formatter)),
+                    Expanded(child: _buildInvestmentSummaryCard(context, fixedSummaryData, formatter)),
                     const SizedBox(width: 16),
-                    Expanded(child: _buildExpectedResultsCard(context, summaryData, formatter)),
+                    Expanded(child: _buildExpectedResultsCard(context, fixedSummaryData, formatter)),
                   ],
                 ),
               ],
@@ -84,7 +104,7 @@ class ResultsSection extends StatelessWidget {
               children: [
                 _buildChartCard(context, projectionData),
                 const SizedBox(height: 16),
-                _buildSummaryCards(context, summaryData, formatter),
+                _buildSummaryCards(context, fixedSummaryData, formatter),
               ],
             );
           }
@@ -113,34 +133,73 @@ class ResultsSection extends StatelessWidget {
 
   /// 資産成長グラフのカードを構築
   Widget _buildChartCard(BuildContext context, List<FlSpot> data) {
+    final years = (simulationYears ?? 10).round().toDouble();
+
+    
+    final spots = data.where((s) => s.x <= years).toList()
+      ..sort((a, b) => a.x.compareTo(b.x));
+
+    // 右端まで線を伸ばす
+    if (spots.isNotEmpty && spots.last.x < years) {
+      spots.add(FlSpot(years, spots.last.y));
+    }
+
+    final double maxDataY = spots.isEmpty
+        ? 0
+        : spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+
+    final double paddedMaxY = maxDataY * 1.08;
+    // 目盛り間隔を自動調整
+    final double yInterval = _pickYInterval(paddedMaxY);
+    // maxY を interval に合わせて切り上げ
+    final double maxY = _ceilTo(paddedMaxY, yInterval);
+    // minY は 0 固定
+    const double minY = 0;
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("${(simulationYears ?? 20).round()}年間の資産成長", style: Theme.of(context).textTheme.bodySmall),
+            Text("${years.toInt()}年間の資産成長", style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 24),
             SizedBox(
               height: 500,
               child: LineChart(
                 LineChartData(
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: true,
-                    getDrawingHorizontalLine: (value) => FlLine(color: Colors.white.withOpacity(0.1), strokeWidth: 1),
-                    getDrawingVerticalLine: (value) => FlLine(color: Colors.white.withOpacity(0.1), strokeWidth: 1),
-                  ),
+                  minX: 0,
+                  maxX: years,
+                  minY: minY,
+                  maxY: maxY,
+
+                  gridData: FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+
                   titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 60, getTitlesWidget: _leftTitleWidgets)),
-                    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 30, getTitlesWidget: _bottomTitleWidgets)),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 60,
+                        interval: yInterval, 
+                        getTitlesWidget: _leftTitleWidgets,
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: 2,
+                        reservedSize: 30,
+                        getTitlesWidget: _bottomTitleWidgets,
+                      ),
+                    ),
                     topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
-                  borderData: FlBorderData(show: true, border: Border.all(color: Colors.white.withOpacity(0.1))),
+
                   lineBarsData: [
                     LineChartBarData(
-                      spots: data,
+                      spots: spots,
                       isCurved: true,
                       color: Theme.of(context).colorScheme.tertiary,
                       barWidth: 4,
@@ -156,17 +215,17 @@ class ResultsSection extends StatelessWidget {
                     touchTooltipData: LineTouchTooltipData(
                       getTooltipItems: (touchedBarSpots) {
                         return touchedBarSpots.map((barSpot) {
-                          final year = barSpot.x.toInt();
+                          final year = barSpot.x.round(); // 
                           final amount = barSpot.y;
                           final formatter = NumberFormat.currency(locale: 'ja_JP', symbol: '¥');
                           return LineTooltipItem(
-                            '${year}年目\n${formatter.format(amount)}',
+                            formatter.format(amount), 
                             TextStyle(color: Theme.of(context).colorScheme.onPrimary),
                           );
                         }).toList();
                       },
                     ),
-                  ),
+                  ),               
                 ),
               ),
             ),
@@ -176,28 +235,42 @@ class ResultsSection extends StatelessWidget {
     );
   }
 
+
+
+double _pickYInterval(double maxY) {
+  // 50万未満  10万刻み
+  if (maxY < 500000) return 100000;
+
+  // 50万以上 100万未満  50万刻み
+  if (maxY < 1000000) return 500000;
+
+  // 100万以上  100万刻み
+  return 1000000;
+}
+
+double _ceilTo(double value, double step) {
+  if (step == 0) return value;
+  return (value / step).ceilToDouble() * step;
+}
+
   /// グラフのX軸（下側）のラベルを構築
   Widget _bottomTitleWidgets(double value, TitleMeta meta) {
     const style = TextStyle(fontSize: 10);
     Widget text;
-    if (value.toInt() % 5 == 0) {
-      text = Text('${value.toInt()}年', style: style);
-    } else {
-      text = const Text('', style: style);
-    }
-    //return SideTitleWidget(axisSide: meta.axisSide, space: 8.0, child: text);
-    return SideTitleWidget(meta: meta, space: 8.0, child: text);
+    return SideTitleWidget(meta: meta,space: 8.0,child: Text('${value.toInt()}年', style: style),
+    );
 
   }
 
   /// グラフのY軸（左側）のラベルを構築
   Widget _leftTitleWidgets(double value, TitleMeta meta) {
     final style = TextStyle(fontSize: 10, color: Colors.grey[400]);
-    if (value % 1000000 == 0 && value != 0) {
-      return Text('${(value / 1000000).toInt()}M', style: style, textAlign: TextAlign.right);
-    }
-    return const SizedBox.shrink();
-  }
+
+      if (value == 0) return const SizedBox.shrink();
+      
+      return Text('${(value / 10000).toInt()}万', style: style, textAlign: TextAlign.right);
+
+      }
 
   /// サマリーカード群を構築（モバイルレイアウト用）
   Widget _buildSummaryCards(BuildContext context, Map<String, double> summaryData, NumberFormat formatter) {
@@ -215,14 +288,14 @@ class ResultsSection extends StatelessWidget {
 
   /// 投資額サマリーカードを構築
   Widget _buildInvestmentSummaryCard(BuildContext context, Map<String, double> summary, NumberFormat formatter) {
-    final years = (simulationYears ?? 20).round();
+    final years = (simulationYears ?? 10).round();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("投資額サマリー", style: Theme.of(context).textTheme.bodySmall),
+            Text("投資額", style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 12),
             _buildSummaryRow(context, "初期投資", formatter.format(initialInvestment)),
             _buildSummaryRow(context, "月額投資 × ${years * 12}ヶ月", formatter.format(averageMonthlyInvestment * 12 * years)),
@@ -236,14 +309,14 @@ class ResultsSection extends StatelessWidget {
 
   /// 予想成果カードを構築
   Widget _buildExpectedResultsCard(BuildContext context, Map<String, double> summary, NumberFormat formatter) {
-    final years = (simulationYears ?? 20).round();
+    final years = (simulationYears ?? 10).round();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("予想成果（${years}年後）", style: Theme.of(context).textTheme.bodySmall),
+            Text("予想成果（${years}年）", style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 12),
             Text("予想資産額", style: Theme.of(context).textTheme.bodySmall),
             Text(

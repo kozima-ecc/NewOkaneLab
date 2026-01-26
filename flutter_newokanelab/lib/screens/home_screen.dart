@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
 
   // --- State Variables ---
   double _initialInvestment = 300000;
-  double _simulationYears = 20;
+  double _simulationYears = 10;
   bool _isMonthlyMode = false;
   double _fixedMonthlyInvestment = 20000;
   late List<double> _monthlyInvestments;

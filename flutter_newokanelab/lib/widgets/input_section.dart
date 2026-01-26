@@ -77,7 +77,7 @@ class InputSection extends StatelessWidget {
         const SizedBox(height: 16),
         _buildMonthlyInvestmentCard(context),
         const SizedBox(height: 16),
-        _buildEventsCard(context),
+        //_buildEventsCard(context), // ライフイベントカードは一旦非表示
         const SizedBox(height: 24),
         ElevatedButton(
           onPressed: onSimulatePressed,
@@ -149,6 +149,7 @@ class InputSection extends StatelessWidget {
 
   /// シミュレーション年数設定カード
   Widget _buildYearsSelectorCard(BuildContext context) {
+    const double maxYears = 10;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -164,18 +165,18 @@ class InputSection extends StatelessWidget {
                     _showNumberInputDialog(
                       context: context,
                       title: 'シミュレーション年数',
-                      initialValue: (simulationYears ?? 20).round().toString(),
+                      initialValue: (simulationYears ?? 10).round().toString(),
                       onSave: (value) {
                         final newValue = double.tryParse(value);
                         if (newValue != null) {
-                          final clampedValue = newValue.clamp(1.0, 50.0);
+                          final clampedValue = newValue.clamp(1.0, 10.0);
                           onSimulationYearsChanged(clampedValue);
                         }
                       },
                     );
                   },
                   child: Text(
-                    '${(simulationYears ?? 20).round()} 年',
+                    '${(simulationYears ?? 10).round()} 年',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
@@ -187,17 +188,17 @@ class InputSection extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Slider(
-              value: simulationYears ?? 20,
+              value: (simulationYears ?? maxYears).clamp(1.0, maxYears),
               min: 1,
-              max: 50,
-              divisions: 49,
+              max: maxYears,
+              divisions: (maxYears - 1).toInt(), // 1年刻み
               onChanged: onSimulationYearsChanged,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("1年", style: Theme.of(context).textTheme.bodySmall),
-                Text("50年", style: Theme.of(context).textTheme.bodySmall),
+                Text("10年", style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ],

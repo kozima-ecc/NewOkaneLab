@@ -19,6 +19,7 @@ class InvestmentSimulatorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // MaterialAppウィジェットは、アプリケーションの基本的な構造やナビゲーションを提供
     return MaterialApp(
+      debugShowCheckedModeBanner: false, 
       // アプリケーションのタイトル
       title: '投資シミュレーター',
       // アプリケーション全体のテーマ設定
