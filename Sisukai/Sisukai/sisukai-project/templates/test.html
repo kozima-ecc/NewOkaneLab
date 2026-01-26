@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flask API テストクライアント</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f7f9fb;
+}
+/* ボタンにホバーエフェクトとシャドウを追加 */
+button {
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+.text-red-400 { color: #f87171; }
+.text-green-400 { color: #4ade80; }
+</style>
+</head>
+
+<body class="p-4 md:p-10 min-h-screen flex items-center justify-center">
+
+<div class="max-w-4xl w-full mx-auto bg-white p-6 md:p-8 rounded-xl shadow-2xl border border-gray-100">
+    <h1 class="text-3xl font-extrabold text-gray-900 mb-6 border-b-4 border-indigo-500 pb-3">
+        📈 Flask API テストクライアント (バックエンド接続確認)
+    </h1>
+    <p class="text-gray-600 mb-8">
+        現在のサーバー設定 <code>http://127.0.0.1:8080</code> に合わせて修正しました。以下のボタンを押して、シミュレーション機能が動作するか確認してください。
+    </p>
+
+    <div class="space-y-6">
+        <!-- ヘルスチェック (旧 DB接続確認) -->
+        <div class="p-5 bg-gray-50 rounded-xl flex flex-col md:flex-row justify-between items-center md:space-x-4">
+            <h2 class="text-xl font-semibold text-gray-800">1. ヘルスチェック (<code>/api/health</code>)</h2>
+            <button id="checkHealth" class="px-6 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700">実行</button>
+        </div>
+
+        <!-- 企業リスト取得 (旧 テスト企業取得) -->
+        <div class="p-5 bg-purple-50 rounded-xl flex flex-col md:flex-row justify-between items-center md:space-x-4">
+            <h2 class="text-xl font-semibold text-purple-800">2. 企業リスト取得 (<code>/api/companies</code>)</h2>
+            <button id="fetchCompanies" class="px-6 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700">実行</button>
+        </div>
+
+        <!-- シミュレーション実行 -->
+        <div class="p-5 bg-teal-100 rounded-xl flex flex-col space-y-3">
+            <h2 class="text-xl font-semibold text-teal-800">3. シミュレーション実行 (<code>/api/simulate</code>)</h2>
+            <p class="text-sm text-teal-700">銘柄: 7203.T (トヨタ), AAPL (Apple) | 期間: 2015/01/01 - 2024/12/31</p>
+            <div class="flex flex-col md:flex-row md:items-center md:space-x-4">
+                <input id="simulationTickers" type="text" value="7203.T,AAPL" placeholder="例: 7203.T,AAPL" class="px-3 py-2 border rounded-md w-full md:w-auto flex-grow">
+                <button id="runSimulation" class="px-6 py-2 bg-teal-600 text-white rounded-xl hover:bg-teal-700 font-bold mt-2 md:mt-0">実行</button>
+            </div>
+        </div>
+
+        <!-- 履歴取得 -->
+        <div class="p-5 bg-orange-50 rounded-xl flex flex-col md:flex-row justify-between items-center">
+            <h2 class="text-xl font-semibold text-orange-800">4. 履歴取得 (<code>/api/history</code>)</h2>
+            <button id="fetchHistory" class="px-6 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700">実行</button>
+        </div>
+    </div>
+
+    <!-- 結果表示 -->
+    <div class="mt-8 pt-6 border-t border-gray-300">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">APIレスポンス結果</h2>
+        <div id="loading" class="text-xl text-gray-500 hidden p-4 bg-gray-100 rounded-xl animate-pulse">データを取得中...</div>
+        <pre id="results" class="bg-gray-800 text-green-400 p-4 rounded-xl overflow-x-auto text-sm min-h-[150px] whitespace-pre-wrap">
+APIテストを開始するには、上部のボタンをクリックしてください。
+        </pre>
+    </div>
+</div>
+
+<script>
+/* ▼ サーバーの設定に合わせて修正 ▼ */
+const BASE_URL = "http://127.0.0.1:8080"; 
+
+const resultsEl = document.getElementById("results");
+const loadingEl = document.getElementById("loading");
+
+function setLoading(isLoading) {
+    loadingEl.classList.toggle("hidden", !isLoading);
+    if (isLoading) resultsEl.textContent = "";
+}
+
+async function callApi(endpoint, method = "GET", body = null) {
+    setLoading(true);
+    resultsEl.classList.remove("text-red-400", "text-green-400");
+
+    try {
+        const options = { method };
+        if (body) {
+            options.headers = { "Content-Type": "application/json" };
+            options.body = JSON.stringify(body);
+        }
+
+        const res = await fetch(BASE_URL + endpoint, options);
+        const text = await res.text();
+        
+        let json = {};
+        try {
+            json = JSON.parse(text);
+            resultsEl.textContent = JSON.stringify(json, null, 2);
+        } catch {
+            resultsEl.textContent = "Raw Text Response:\n" + text;
+        }
+
+        // HTTPステータスコードを結果に表示
+        resultsEl.textContent = `[Status: ${res.status} ${res.statusText}]\n\n` + resultsEl.textContent;
+
+        // 色分け
+        resultsEl.classList.add(res.ok ? "text-green-400" : "text-red-400");
+    } catch (err) {
+        resultsEl.textContent = `[Status: Network Error]\n\nネットワークエラー: ${err.message}`;
+        resultsEl.classList.add("text-red-400");
+    }
+
+    setLoading(false);
+}
+
+// ▼ イベントハンドラ
+document.getElementById("checkHealth").addEventListener("click", () => callApi("/api/health")); // 新しいヘルスチェック
+
+document.getElementById("fetchCompanies").addEventListener("click", () => {
+    callApi("/api/companies"); // 全企業リストを取得
+});
+
+document.getElementById("fetchHistory").addEventListener("click", () => callApi("/api/history"));
+
+document.getElementById("runSimulation").addEventListener("click", () => {
+    const tickers = document.getElementById("simulationTickers").value
+                     .split(",")
+                     .map(s => s.trim())
+                     .filter(s => s);
+
+    if (!tickers.length) {
+        resultsEl.textContent = "銘柄を1つ以上入力してください";
+        resultsEl.classList.add("text-red-400");
+        return;
+    }
+
+    callApi("/api/simulate", "POST", {
+        initial_investment: 1000000,
+        monthly_investment: 50000,
+        start_date: "2015-01-01",
+        end_date: "2024-12-31",
+        tickers: tickers
+    });
+});
+</script>
+
+</body>
+</html>

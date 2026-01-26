@@ -1,0 +1,9 @@
+flask>=3.0.0
+SQLAlchemy>=2.0.0
+pandas>=2.0.0
+yfinance>=0.2.40
+openpyxl>=3.1.0
+PyMySQL>=1.1.0
+arelle>=2.2
+#pyedinet>=0.1.0
+cryptography>=42.0.0
